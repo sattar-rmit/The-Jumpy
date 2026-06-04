@@ -1,0 +1,80 @@
+clc; clear; close all;
+
+%% ------------------- LEG PARAMETERS -------------------
+L1 = 60;   % Thigh length (mm)
+L2 = 80;   % Shank length (mm)
+
+%% ------------------- WALKING PARAMETERS -------------------
+stepLength = 25;     % Forward step length (mm)
+% stepLength = -25;     % reverse stepping
+
+stepHeight = 5;     % Foot lift height (mm)
+
+cycleTime  =10.0;    % One step duration (seconds)
+
+zGround = -97;       % Ground level (mm)
+xCenter = 2;        % Neutral foot x-position
+
+dt = 0.02;           % Simulation time step
+t = 0:dt:cycleTime;
+
+
+%% ------------------- FIGURE SETUP -------------------
+figure('Color','w');
+axis equal;
+grid on;
+xlabel('X (mm)');
+ylabel('Z (mm)');
+xlim([-100 300]);
+ylim([-100 300]);
+set(gca,'FontSize',12);
+
+
+%% ------------------- MAIN LOOP -------------------
+for i=1:10
+ 
+for i = 1:length(t)
+
+    phase = t(i) / cycleTime;
+
+    % -------- Foot Trajectory (Swing Phase Only) --------
+    x = xCenter + stepLength * sin(pi * phase);
+    z = zGround + stepHeight * sin(pi * phase);
+
+    % -------- INVERSE KINEMATICS --------
+    D = (x^2 + z^2 - L1^2 - L2^2) / (2 * L1 * L2);
+    D = max(min(D,1),-1); % safety clamp.. Floating point errors may give values like 1.00001 ; acos() may crash
+
+
+
+    % knee = acos(D); % for forward bent knee
+    knee = -acos(D);  % for reverse bent knee
+
+    hip  = atan2(z, x) - atan2(L2*sin(knee), L1 + L2*cos(knee));
+
+    % -------- FORWARD KINEMATICS --------
+    kneeX = L1 * cos(hip);
+    kneeZ = L1 * sin(hip);
+
+    footX = kneeX + L2 * cos(hip + knee);
+    footZ = kneeZ + L2 * sin(hip + knee);
+
+    % -------- DRAW LEG --------
+    cla;
+
+    plot([0 kneeX],[0 kneeZ],'k','LineWidth',4); 
+    hold on;
+    plot([kneeX footX],[kneeZ footZ],'r','LineWidth',4);
+    plot(footX, footZ,'bo','MarkerSize',8,'MarkerFaceColor','b');
+    plot(0,0,'ks','MarkerSize',10,'MarkerFaceColor','k');
+    
+    axis([-100 150 -100 50]); 
+    title(sprintf('One-Leg Walking Simulation | t = %.2f s',t(i)));
+
+    
+
+    drawnow;
+
+end
+
+end
