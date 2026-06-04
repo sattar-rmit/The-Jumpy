@@ -1,0 +1,109 @@
+clc; clear; close all;
+
+%% ------------------- LEG PARAMETERS -------------------
+L1 = 60;    % Thigh length (mm)
+L2 = 80;    % Shank length (mm)
+
+%% ------------------- GAIT PARAMETERS -------------------
+stepLength  = 30;    % Forward step length (mm)
+stepHeight  = 20;    % Foot lift height (mm)
+cycleTime   = 5.0;   % One gait cycle (seconds)
+stanceRatio = 0.7;   % % of cycle in stance (0–1) ;; decide how long the foot should stay on ground; real gait spends more time on ground
+
+xCenter = 20;        % Neutral foot x-position
+zGround = -97;       % Ground height (mm)
+
+dt = 0.02;
+t = 0:dt:cycleTime;
+
+%% ------------------- FIGURE SETUP -------------------
+figure('Color','w');
+axis equal;
+grid on;
+xlabel('X (mm)');
+ylabel('Z (mm)');
+xlim([-50 150]);
+ylim([-150 50]);
+set(gca,'FontSize',12);
+
+%% ------------------- MAIN LOOP -------------------
+for i=1:10
+
+
+for i = 1:length(t)
+
+    phase = t(i) / cycleTime;  %Makes the gait independent of speed; 0.0 =Start of step; 0.5 =mid-step; 1.0 =End of step
+
+    %% -------- STANCE vs SWING --------
+    if phase < stanceRatio %Checks if we are still inside the stance portion of the gait cycle
+       
+        % -------- STANCE PHASE --------
+        stancePhase = phase / stanceRatio; % normalize stance;
+
+        x = xCenter + stepLength/2 ... %Foot starts forward relative to hip
+            - stepLength * stancePhase;  %Foot moves backward by stepLength
+        z = zGround;
+
+    else
+        % -------- SWING PHASE --------
+        
+        %Maps swing time into a clean 0 → 1 range;Makes swing math independent of stance duration
+        % Example
+        % phase	   swingPhase
+        % 0.6  >>>	0.0
+        % 0.8  >>>	0.5
+        % 1.0  >>>	1.0
+        swingPhase = (phase - stanceRatio) / (1 - stanceRatio); 
+
+        
+        x = xCenter - stepLength/2 ...   %Foot starts behind the hip
+            + stepLength * swingPhase;    % Moves foot forward smoothly to prepare next stance
+
+        z = zGround + stepHeight * sin(pi * swingPhase); %creates a smooth arc foot trajectory
+
+        % Function of  sin(pi * swingPhase)?
+        %   Phase	   sin value	   Meaning
+        %     0	           0	      Lift-off
+        %    0.5	       1	     Max clearance
+        %     1	           0	      Touch-down
+
+    end
+
+    %% -------- INVERSE KINEMATICS --------
+    D = (x^2 + z^2 - L1^2 - L2^2) / (2 * L1 * L2);
+    D = max(min(D,1),-1);
+
+     % knee = acos(D);   % Knee flexion
+    knee = -acos(D);   % Knee flexion
+
+
+    hip  = atan2(z, x) ...
+         - atan2(L2*sin(knee), L1 + L2*cos(knee));
+
+    %% -------- FORWARD KINEMATICS --------
+    kneeX = L1 * cos(hip);
+    kneeZ = L1 * sin(hip);
+
+    footX = kneeX + L2 * cos(hip + knee);
+    footZ = kneeZ + L2 * sin(hip + knee);
+
+    %% -------- DRAW LEG --------
+    cla;
+    plot([0 kneeX],[0 kneeZ],'k','LineWidth',4); hold on;
+    plot([kneeX footX],[kneeZ footZ],'r','LineWidth',4);
+
+    plot(footX, footZ,'bo','MarkerSize',8,'MarkerFaceColor','b');
+    plot(0,0,'ks','MarkerSize',10,'MarkerFaceColor','k');
+
+    if phase < stanceRatio
+        title(sprintf('STANCE PHASE | t = %.2f s',t(i)));
+    else
+        title(sprintf('SWING PHASE | t = %.2f s',t(i)));
+    end
+
+    axis([-100 150 -100 50]);
+
+    drawnow;
+end
+
+end
