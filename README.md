@@ -1,12 +1,26 @@
 # The-Jumpy
 
  ---  --  -   The Jumpy -  --  ---
+
+The Jumpy is my new robot, with four legs. 
+The goal is make this robot intelligent navigator with natural gait and obstacle avoidance capabilities.
+
+***** THE MAIN BRANCH CONTAINS MATLAB CODES *****
+
+The Jumpy owns a completely new design, meant to fit the servos and other hardware that I have in hand.
+
+Like if you wanna keep Jumpy charged.
+Comment if you wanna tell Jumpy, be a good pet!
+
+========= VIDEO SERIES =================
+
+I'll be posting more videos in this series as the project progresses. 
  
 The Jumpy | Part #8 | Up and Down Motion | Startup Pattern | DIY Four legged Robot Full Assembly
 
 This video is Part #8 of the series. 
 
-Here you will watch hw robot acquire sitting and stading up position. Final looks After Full Assembly also shown.
+Here you will watch hOw robot acquire sitting and stading up position. Final looks After Full Assembly also shown.
 
 
 Part #8 | Up and Down Motion | Startup Pattern | DIY Four legged Robot Full Assembly
@@ -50,16 +64,3 @@ https://www.youtube.com/watch?v=ZvlKNIAhCq8
 
 
 
-The Jumpy is my new robot, with four legs. 
-The goal is make this robot intelligent navigator with natural gait and obstacle avoidance capabilities.
-
-
-But, isn't it fun if you wanna own a little pet doing tricks for you?
-With learning as a byproduct.. ?
-
-I'll be posting more videos in this series as the project progresses. 
-
-The Jumpy owns a completely new design, meant to fit the servos and other hardware that I have in hand.
-
-Like if you wanna keep Jumpy charged.
-Comment if you wanna teach Jumpy, be a good pet .
