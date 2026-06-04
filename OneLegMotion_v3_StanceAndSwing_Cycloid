@@ -1,0 +1,100 @@
+clc; clear; close all;
+
+%% ------------------- LEG PARAMETERS -------------------
+L1 = 60;    % Thigh length (mm)
+L2 = 80;    % Shank length (mm)
+
+%% ------------------- GAIT PARAMETERS -------------------
+stepLength  = 30;    % Forward step length (mm)
+stepHeight  = 20;    % Foot lift height (mm)
+cycleTime   = 5.0;   % One gait cycle (seconds)
+stanceRatio = 0.7;   % % of cycle in stance (0–1) ;; decide how long the foot should stay on ground; real gait spends more time on ground
+
+xCenter = 20;        % Neutral foot x-position
+zGround = -97;       % Ground height (mm)
+
+dt = 0.02;
+t = 0:dt:cycleTime;
+
+%% ------------------- FIGURE SETUP -------------------
+figure('Color','w');
+axis equal;
+grid on;
+xlabel('X (mm)');
+ylabel('Z (mm)');
+xlim([-50 150]);
+ylim([-150 50]);
+set(gca,'FontSize',12);
+
+%% ------------------- MAIN LOOP -------------------
+for i=1:10
+
+
+for i = 1:length(t)
+
+    phase = t(i) / cycleTime;  %Makes the gait independent of speed; 0.0 =Start of step; 0.5 =mid-step; 1.0 =End of step
+
+    %% -------- STANCE vs SWING --------
+            if phase < stanceRatio
+                % -------- STANCE PHASE --------
+                stancePhase = phase / stanceRatio;
+            
+                s = stancePhase;
+                cycloid = s - (1/(2*pi)) * sin(2*pi*s);
+            
+                x = xCenter + stepLength/2 ...
+                    - stepLength * cycloid;
+            
+                z = zGround;
+            
+            else
+                % -------- SWING PHASE --------
+                swingPhase = (phase - stanceRatio) / (1 - stanceRatio);
+            
+                s = swingPhase;
+                cycloid = s - (1/(2*pi)) * sin(2*pi*s);
+            
+                x = xCenter - stepLength/2 ...
+                    + stepLength * cycloid;
+            
+                z = zGround + stepHeight * sin(pi * swingPhase);
+            end
+
+    %% -------- INVERSE KINEMATICS --------
+    D = (x^2 + z^2 - L1^2 - L2^2) / (2 * L1 * L2);
+    D = max(min(D,1),-1);
+
+     % knee = acos(D);   % Knee flexion
+    knee = -acos(D);   % Knee flexion
+
+
+    hip  = atan2(z, x) ...
+         - atan2(L2*sin(knee), L1 + L2*cos(knee));
+
+    %% -------- FORWARD KINEMATICS --------
+    kneeX = L1 * cos(hip);
+    kneeZ = L1 * sin(hip);
+
+    footX = kneeX + L2 * cos(hip + knee);
+    footZ = kneeZ + L2 * sin(hip + knee);
+
+    %% -------- DRAW LEG --------
+    cla;
+    plot([0 kneeX],[0 kneeZ],'k','LineWidth',4); hold on;
+    plot([kneeX footX],[kneeZ footZ],'r','LineWidth',4);
+
+    plot(footX, footZ,'bo','MarkerSize',8,'MarkerFaceColor','b');
+    plot(0,0,'ks','MarkerSize',10,'MarkerFaceColor','k');
+
+    if phase < stanceRatio
+        title(sprintf('STANCE PHASE | t = %.2f s',t(i)));
+    else
+        title(sprintf('SWING PHASE | t = %.2f s',t(i)));
+    end
+
+    axis([-100 150 -100 50]);
+
+    drawnow;
+end
+
+end
